@@ -143,7 +143,7 @@ func drawStats(gc draw2d.GraphicContext, stats, prev *covidStats) {
 	// 	gc.FillStringAt("(+"+strconv.Itoa(stats.cases-prev.cases)+")", 60, 8*row-2)
 	// }
 
-	gc.FillStringAt("Last refresh: "+time.Now().Format(time.RFC3339), 1, 103)
+	gc.FillStringAt("Last refreshed: "+time.Now().Format(time.RFC3339), 1, 103)
 }
 
 type covidStats struct {
