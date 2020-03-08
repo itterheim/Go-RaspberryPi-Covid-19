@@ -13,7 +13,8 @@
 
 = **THIS**
 
+*Data (worldometers):* https://www.worldometers.info/coronavirus/
 
-Data (worldometers): https://www.worldometers.info/coronavirus/
+*Font (Daniel Linssen):* https://managore.itch.io/m3x6
 
-Font (Daniel Linssen): https://managore.itch.io/m3x6
+![Resutt](./result.jpg)
