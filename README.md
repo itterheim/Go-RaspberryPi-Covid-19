@@ -1,5 +1,17 @@
 # Go-RaspberryPi-Covid-19
-`Golang` + `Raspberry Pi Zero W` + `Waveshare 2.13 eink display` + `SPI communication` + `web scraping` + `COVID-19 disease` = **THIS**
+`Golang`
+
++`Raspberry Pi Zero W`
+
++`Waveshare 2.13 eink display`
+
++`SPI communication`
+
++`web scraping`
+
++`COVID-19 disease`
+
+= **THIS**
 
 
 Data (worldometers): https://www.worldometers.info/coronavirus/
