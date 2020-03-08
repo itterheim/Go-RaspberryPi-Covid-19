@@ -13,8 +13,15 @@
 
 = **THIS**
 
+### Resources
 *Data (worldometers):* https://www.worldometers.info/coronavirus/
 
 *Font (Daniel Linssen):* https://managore.itch.io/m3x6
+
+### Result
+
+*Left* = World total
+
+*Right* = Czech Republic
 
 ![Resutt](./result.jpg)
