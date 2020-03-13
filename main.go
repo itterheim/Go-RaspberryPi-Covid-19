@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -27,49 +28,55 @@ func main() {
 
 	registerFonts()
 
-	// TEST - save to file
-	// stats, _ := download()
-	// dest := draw(stats, &covidStats{})
-	// draw2dimg.SaveToPngFile("test.png", dest)
+	if runtime.GOOS == "windows" {
+		fmt.Println("You are running on Windows")
+		// TEST - save to file
 
-	// Raspberry PI - display on eink diplay
-	host.Init()
-	fmt.Println("init")
-
-	e := epd.CreateEpd()
-	defer e.Close()
-
-	prev := &covidStats{}
-
-	for n := 0; n >= 0; n++ {
-		stats, err := download()
-		if err != nil {
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		fmt.Println(stats)
-
-		e.Init()
-		// e.Clear()
-
-		dest := draw(stats, prev)
-
+		stats, _ := download()
+		dest := draw(stats, &covidStats{})
 		draw2dimg.SaveToPngFile("test.png", dest)
+	} else {
+		fmt.Println("You are running on an OS other than Windows")
 
-		data := getBuffer(dest)
-		fmt.Println(data[:1])
+		// Raspberry PI - display on eink diplay
+		host.Init()
+		fmt.Println("init")
 
-		e.DisplayBlack(data)
-		e.Sleep()
+		e := epd.CreateEpd()
+		defer e.Close()
 
-		if prev.cases == 0 {
-			prev = stats
-		}
+		prev := &covidStats{}
 
-		if n == 0 {
-			time.Sleep(20 * time.Second)
-		} else {
-			time.Sleep(5 * time.Minute)
+		for n := 0; n >= 0; n++ {
+			stats, err := download()
+			if err != nil {
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			fmt.Println(stats)
+
+			e.Init()
+			// e.Clear()
+
+			dest := draw(stats, prev)
+
+			draw2dimg.SaveToPngFile("test.png", dest)
+
+			data := getBuffer(dest)
+			fmt.Println(data[:1])
+
+			e.DisplayBlack(data)
+			e.Sleep()
+
+			if prev.cases == 0 {
+				prev = stats
+			}
+
+			if n == 0 {
+				time.Sleep(20 * time.Second)
+			} else {
+				time.Sleep(5 * time.Minute)
+			}
 		}
 	}
 
@@ -123,22 +130,26 @@ func drawStats(gc draw2d.GraphicContext, stats, prev *covidStats) {
 	})
 
 	row := 6.0 + 4.0
+	offset := -3.0
 	gc.FillStringAt(stats.lastUpdated, 1, row-3)
 
 	gc.SetFontSize(16)
-	gc.FillStringAt("cases:", 1, 4*row)
+	gc.FillStringAt("active:", 1, 4*row+offset)
 	gc.SetFontSize(32)
-	gc.FillStringAt(strconv.Itoa(stats.cases), 60, 4*row)
-	gc.FillStringAt(strconv.Itoa(stats.czCases), 150, 4*row)
+	gc.FillStringAt(strconv.Itoa(stats.cases-stats.recovered-stats.deaths), 60, 4*row+offset)
+	gc.FillStringAt(strconv.Itoa(stats.czCases-stats.czRecovered-stats.czDeaths), 140, 4*row+offset)
 
 	gc.SetFontSize(16)
-	gc.FillStringAt("recovered:", 1, 6*row-2)
-	gc.FillStringAt(strconv.Itoa(stats.recovered), 60, 6*row-2)
-	gc.FillStringAt(strconv.Itoa(stats.czRecovered), 150, 6*row-2)
-	gc.FillStringAt("deaths:", 1, 7*row-2)
-	gc.FillStringAt(strconv.Itoa(stats.deaths), 60, 7*row-2)
-	gc.FillStringAt(strconv.Itoa(stats.czDeaths), 150, 7*row-2)
-	gc.FillStringAt("(+"+strconv.Itoa(stats.czNew)+")", 150, 8*row-2)
+	gc.FillStringAt("total:", 1, 5*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.cases), 60, 5*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.czCases), 140, 5*row+offset+6)
+	gc.FillStringAt("recovered:", 1, 6*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.recovered), 60, 6*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.czRecovered), 140, 6*row+offset+6)
+	gc.FillStringAt("deaths:", 1, 7*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.deaths), 60, 7*row+offset+6)
+	gc.FillStringAt(strconv.Itoa(stats.czDeaths), 140, 7*row+offset+6)
+	gc.FillStringAt("(+"+strconv.Itoa(stats.czNew)+")", 140, 8*row+offset+6)
 	// if prev.cases > 0 {
 	// 	gc.FillStringAt("(+"+strconv.Itoa(stats.cases-prev.cases)+")", 60, 8*row-2)
 	// }
@@ -204,7 +215,6 @@ func download() (*covidStats, error) {
 			country = strings.TrimSpace(country)
 			if country == "Czechia" {
 				cells.Each(func(i int, s *goquery.Selection) {
-					fmt.Printf("%v - %v\n", i, s.Text())
 					switch i {
 					case 1:
 						stats.czCases = toNumber(s.Text())
